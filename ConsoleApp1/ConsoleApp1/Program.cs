@@ -1,27 +1,57 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
-// Модель товара
-public record Product(int Id, string Name, decimal Price);
-
-// Класс управления инвентарем
-public class Inventory
+// Базовый класс сотрудника
+public class Employee
 {
-    // Инкапсулированная коллекция товаров
-    private List<Product> products = new List<Product>();
+    public string Name { get; set; }
+    public decimal BaseSalary { get; set; }
 
-    // Добавление товара
-    public void AddProduct(Product product)
+    public Employee(string name, decimal baseSalary)
     {
-        products.Add(product);
-        Console.WriteLine($"Добавлен товар: {product}");
+        Name = name;
+        BaseSalary = baseSalary;
     }
 
-    // Поиск товара по ID
-    public Product? FindProductById(int id)
+    // Виртуальный метод расчета зарплаты
+    public virtual decimal CalculateMonthlySalary()
     {
-        return products.FirstOrDefault(p => p.Id == id);
+        return BaseSalary;
+    }
+}
+
+// Класс Менеджер
+public class Manager : Employee
+{
+    public decimal Bonus { get; set; }
+
+    public Manager(string name, decimal baseSalary, decimal bonus)
+        : base(name, baseSalary)
+    {
+        Bonus = bonus;
+    }
+
+    public override decimal CalculateMonthlySalary()
+    {
+        return BaseSalary + Bonus;
+    }
+}
+
+// Класс Разработчик
+public class Developer : Employee
+{
+    public int LinesOfCodeWritten { get; set; }
+
+    public Developer(string name, decimal baseSalary, int linesOfCodeWritten)
+        : base(name, baseSalary)
+    {
+        LinesOfCodeWritten = linesOfCodeWritten;
+    }
+
+    public override decimal CalculateMonthlySalary()
+    {
+        decimal bonusPerLine = 0.25m; // премия за строку кода
+        return BaseSalary + (LinesOfCodeWritten * bonusPerLine);
     }
 }
 
@@ -29,40 +59,22 @@ class Program
 {
     static void Main()
     {
-        Console.WriteLine("--- Управление инвентарем ---");
+        Console.WriteLine("--- Расчет заработной платы ---");
 
-        // Создание инвентаря
-        Inventory inventory = new Inventory();
-
-        // Добавление товаров
-        inventory.AddProduct(new Product(1, "Молоко", 80.50m));
-        inventory.AddProduct(new Product(2, "Хлеб", 40.00m));
-        inventory.AddProduct(new Product(3, "Сыр", 450.99m));
-
-        // Поиск существующего товара
-        Console.WriteLine("\n--- Поиск товара с ID 2 ---");
-        Product? foundProduct = inventory.FindProductById(2);
-
-        if (foundProduct != null)
+        // Полиморфный список сотрудников
+        List<Employee> employees = new List<Employee>
         {
-            Console.WriteLine($"Найден товар: {foundProduct}");
-        }
-        else
-        {
-            Console.WriteLine("Товар с ID 2 не найден.");
-        }
+            new Manager("Менеджер Иван Петров", 100000m, 5000m),
+            new Developer("Разработчик Анна Сидорова", 90000m, 2100),
+            new Manager("Менеджер Олег Васильев", 120000m, 10000m)
+        };
 
-        // Поиск несуществующего товара
-        Console.WriteLine("\n--- Поиск товара с ID 99 ---");
-        foundProduct = inventory.FindProductById(99);
-
-        if (foundProduct != null)
+        // Полиморфный вызов метода
+        foreach (Employee employee in employees)
         {
-            Console.WriteLine($"Найден товар: {foundProduct}");
-        }
-        else
-        {
-            Console.WriteLine("Товар с ID 99 не найден.");
+            Console.WriteLine(
+                $"Зарплата для {employee.Name}: {employee.CalculateMonthlySalary():0}"
+            );
         }
 
         Console.WriteLine("\nНажмите Enter для завершения...");
